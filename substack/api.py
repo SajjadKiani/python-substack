@@ -10,7 +10,7 @@ import logging
 import os
 from datetime import datetime
 from urllib.parse import urljoin
-
+from substack.cookie_session import CookieSession
 import requests
 
 from substack.exceptions import SubstackAPIException, SubstackRequestException
@@ -64,9 +64,7 @@ class Api:
         # Load cookies from file if provided
         # Helps with Captcha errors by reusing cookies from "local" auth, then switching to running code in the cloud
         if cookies_path is not None:
-            with open(cookies_path) as f:
-                cookies = json.load(f)
-            self._session.cookies.update(cookies)
+            self._session = CookieSession(cookies_path)
 
         elif email is not None and password is not None:
             self.login(email, password)
@@ -189,11 +187,11 @@ class Api:
         Args:
             publication:
         """
-        custom_domain = publication["custom_domain"]
-        if not custom_domain:
-            publication_url = f"https://{publication['subdomain']}.substack.com"
-        else:
+        if publication['custom_domain_optional']:
+            custom_domain = publication["custom_domain"]
             publication_url = f"https://{custom_domain}"
+        else:
+            publication_url = f"https://{publication['subdomain']}.substack.com"
 
         return publication_url
 
