@@ -10,9 +10,8 @@ import logging
 import os
 from datetime import datetime
 from urllib.parse import urljoin
-from substack.cookie_session import CookieSession
 import requests
-
+from requests.utils import cookiejar_from_dict
 from substack.exceptions import SubstackAPIException, SubstackRequestException
 
 logger = logging.getLogger(__name__)
@@ -64,7 +63,10 @@ class Api:
         # Load cookies from file if provided
         # Helps with Captcha errors by reusing cookies from "local" auth, then switching to running code in the cloud
         if cookies_path is not None:
-            self._session = CookieSession(cookies_path)
+            with open(cookies_path, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+                cookies = cookiejar_from_dict({c["name"]: c["value"] for c in raw})
+            self._session.cookies.update(cookies)
 
         elif email is not None and password is not None:
             self.login(email, password)
