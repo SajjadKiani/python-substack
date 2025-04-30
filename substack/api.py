@@ -187,7 +187,7 @@ class Api:
         Args:
             publication:
         """
-        if publication['custom_domain_optional']:
+        if publication.get('custom_domain_optional', None):
             custom_domain = publication["custom_domain"]
             publication_url = f"https://{custom_domain}"
         else:
